@@ -1,0 +1,23 @@
+#!/bin/sh
+
+export ARCH=i386
+export CFLAGS=-m32
+export CPPFLAGS=-m32
+export LDFLAGS=-m32
+
+rm -f amaya-installer.iso
+
+cd work/kernel
+cd $(ls -d *)
+
+# Edit Makefile to look for genisoimage instead of mkisofs. This was added as a
+# workaround for some "Debian" and "Arch Linux" distributions. In general this
+# fix should be harmless.
+sed -i 's/mkisofs/genisoimage/g' arch/x86/boot/Makefile
+
+# Generate the ISO image with optimization for "parallel jobs" = "number of processors"
+make isoimage FDINITRD=../../rootfs.cpio.gz -j $(grep ^processor /proc/cpuinfo | wc -l)
+
+cp arch/x86/boot/image.iso ../../../amaya-installer.iso
+
+cd ../../..
